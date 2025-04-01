@@ -117,7 +117,7 @@ class ReasoningAgent:
                     )
                     content = await self.process_stream(stream_generator, on_token)
                 else:
-                    content = await self.client.generate_completion(
+                    content = self.client.generate_completion(
                         self.trace, self.instructions
                     )
             except (asyncio.TimeoutError, asyncio.CancelledError) as e:

@@ -18,7 +18,8 @@ For more details about our project, please visit our [blog post](https://www.ii.
 
 ## 🎬 Demo
 
-https://github.com/user-attachments/assets/60634037-9d74-41ea-a6d3-e0a0e83b9ca6
+https://github.com/user-attachments/assets/d862b900-a06b-46c6-9694-cccd1edac6f6
+
 
 ## 🔧 Required Software
 

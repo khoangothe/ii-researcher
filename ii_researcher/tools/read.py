@@ -36,7 +36,6 @@ class WebSearchTool:
 
     def _search_query_by_serp_api(self, query, max_results=10):
         """Searches the query using SerpAPI."""
-        print("SerpApiSearch: Searching with query {0}...".format(query))
 
         serpapi_api_key = os.environ.get("SERPAPI_API_KEY")
 

@@ -23,7 +23,6 @@ class FirecrawlScraper:
         Returns:
             Dict[str, Any]: Scraped content
         """
-        print(f"FireCrawl: Scraping URL {self.link}...")
         base_url = "https://api.firecrawl.dev/v1/scrape"
         api_key = os.environ.get("FIRECRAWL_API_KEY")
         headers = {

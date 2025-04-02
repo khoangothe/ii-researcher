@@ -1,13 +1,17 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+requires = [
+    "setuptools>=61.0",
+    "wheel"
+]
 build-backend = "setuptools.build_meta"
+
 
 [project]
 name = "ii-researcher"
 version = "0.1.0"
 description = "II Researcher Package"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"},
+    {name = "Intelligent Internet", email = "emad@ii.inc"},
 ]
 readme = "README.md"
 requires-python = ">=3.8"
@@ -46,17 +50,8 @@ dev = [
     # Add development dependencies here
 ]
 
-[project.scripts]
-ii-researcher = "ii_researcher.cli:main"
-
 [tool.setuptools]
-packages = ["ii_researcher", "baml_client"]
+include-package-data = true
 
-[tool.black]
-line-length = 88
-target-version = ['py38']
-include = '\.pyi?$'
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
+[tool.setuptools.package-dir]
+"" = "."

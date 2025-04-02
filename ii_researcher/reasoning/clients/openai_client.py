@@ -68,7 +68,7 @@ class OpenAIClient:
                 presence_penalty=self.config.llm.presence_penalty,
                 stop=self.config.llm.stop_sequence,
             )
-            return response
+            return response.choices[0].message.content
         except Exception as e:
             logging.error("Error generating completion: %s", str(e))
             raise

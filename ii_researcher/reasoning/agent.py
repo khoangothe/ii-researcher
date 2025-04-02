@@ -164,7 +164,7 @@ class ReasoningAgent:
                             self.trace, on_token
                         )
                     else:
-                        final_report = await self.client.generate_report(self.trace)
+                        final_report = self.client.generate_report(self.trace)
 
                     # Create a final turn with the report
                     report_output = ModelOutput(raw=final_report, is_last=True)

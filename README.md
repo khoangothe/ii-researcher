@@ -22,7 +22,7 @@ https://github.com/user-attachments/assets/d862b900-a06b-46c6-9694-cccd1edac6f6
 
 ## 🎬 MCP
 
-https://github.com/user-attachments/assets/29703bd0-e32d-4be9-b686-2f4399fda9bf
+https://github.com/user-attachments/assets/2c1542f0-0e1b-44d5-8fc5-0446a07b3821
 
 ## 🔧 Required Software
 

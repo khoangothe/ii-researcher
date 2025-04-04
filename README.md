@@ -21,7 +21,8 @@ For more details about our project, please visit our [blog post](https://www.ii.
 https://github.com/user-attachments/assets/d862b900-a06b-46c6-9694-cccd1edac6f6
 
 ## 🎬 MCP
-https://github.com/user-attachments/assets/29703bd0-e32d-4be9-b686-2f4399fda9bf
+
+https://github.com/user-attachments/assets/2c1542f0-0e1b-44d5-8fc5-0446a07b3821
 
 ## 🔧 Required Software
 
@@ -121,7 +122,8 @@ model_list:
   - model_name: r1
     litellm_params:
       model: deepseek-reasoner
-      api_key: ${OPENAI_API_KEY}
+      api_base: https://api.deepseek.com/beta
+      api_key: ${DEEPSEEK_API_KEY}
 
 litellm_settings:
   drop_params: true
@@ -188,17 +190,21 @@ python ii_researcher/cli.py --question "your question here" --use-reasoning --st
 ### Using MCP
 
 1. Set up your environment variables
-  - Copy the .env.example file to create a new file named .env
-    ```bash
-    cp .env.example .env
-    ```
-  - Edit the .env file and add your API keys and configure other settings:
-2. Integrating with Claude
-You can integrate your MCP server with Claude using: [Claude Desktop Integration](https://docs.gptr.dev/docs/gpt-researcher/mcp-server/claude-integration)
-3. Install mcp to Claude
+
+- Copy the .env.example file to create a new file named .env
   ```bash
-  mcp install mcp/server.py -f .env
+  cp .env.example .env
   ```
+- Edit the .env file and add your API keys and configure other settings:
+
+2. Integrating with Claude
+   You can integrate your MCP server with Claude using: [Claude Desktop Integration](https://docs.gptr.dev/docs/gpt-researcher/mcp-server/claude-integration)
+3. Install mcp to Claude
+
+```bash
+mcp install mcp/server.py -f .env
+```
+
 4. Restart your Claude App
 
 ### Using the Web Interface

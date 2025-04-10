@@ -161,11 +161,18 @@ class ReasoningAgent:
 
                 # Generate the report
                 try:
+                    report_builder = ReportBuilder(self.stream_event)
                     if is_stream:
                         # Stream the report
-                        final_report = await ReportBuilder(self.stream_event).generate_advance_report_stream(self.tool_history, self.trace, on_token)
+                        final_report = await report_builder.generate_advance_report_stream(
+                            self.tool_history, 
+                            self.trace, 
+                            on_token
+                        )
                     else:
-                        final_report = ReportBuilder(self.stream_event).generate_advance_report(self.tool_history, self.trace)
+                        final_report = report_builder.generate_advance_report(
+                            self.tool_history, self.trace
+                        )
 
                     # Create a final turn with the report
                     report_output = ModelOutput(raw=final_report, is_last=True)

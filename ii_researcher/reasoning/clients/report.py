@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from openai import OpenAI, AsyncOpenAI
 
-from ii_researcher.reasoning.config import get_config
+from ii_researcher.reasoning.config import get_report_config
 from ii_researcher.reasoning.models.trace import Trace
 from ii_researcher.reasoning.tools.tool_history import ToolHistory
 
@@ -21,7 +21,7 @@ class ReportBuilder:
         self,
         stream_event: Optional[Callable[[str, Dict[str, Any]], None]] = None
     ):
-        self.config = get_config()
+        self.config = get_report_config()
         self.client = OpenAI(
             api_key=self.config.llm.api_key,
             base_url=self.config.llm.base_url,

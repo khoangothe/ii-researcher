@@ -167,7 +167,11 @@ I just got some new information.
     duplicate_query_template: str = ConfigConstants.DUPLICATE_QUERY_TEMPLATE
     duplicate_url_template: str = ConfigConstants.DUPLICATE_URL_TEMPLATE
 
+
+class ReportConfig(BaseModel):
+    llm: LLMConfig = LLMConfig()
     # Report system prompt (separate to avoid mixing with main prompt)
+
     def generate_introduction_messages(self, trace: str, query: str) -> List[Dict[str, Any]]:
         introduction_prompt = f"""{trace}\n 
 Using the above latest information, Prepare a detailed report introduction on the topic -- {query}.
@@ -369,6 +373,12 @@ The response format is in well markdown.
 
 # Create a singleton config instance
 CONFIG = AgentConfig()
+REPORT_CONFIG = ReportConfig()
+
+
+def get_report_config() -> ReportConfig:
+    """Get the report configuration."""
+    return REPORT_CONFIG
 
 
 def get_config() -> AgentConfig:

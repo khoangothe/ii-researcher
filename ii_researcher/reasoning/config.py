@@ -73,9 +73,11 @@ class LLMConfig(BaseModel):
     stop_sequence: List[str] = Field(
         default_factory=lambda: ConfigConstants.DEFAULT_STOP_SEQUENCE
     )
-    api_key: str = Field(default_factory=lambda: os.getenv("OPENAI_API_KEY", "empty"))
+    api_key: str = Field(
+        default_factory=lambda: os.getenv("OPENAI_API_KEY", "empty"))
     base_url: str = Field(
-        default_factory=lambda: os.getenv("OPENAI_BASE_URL", "http://localhost:4000")
+        default_factory=lambda: os.getenv(
+            "OPENAI_BASE_URL", "http://localhost:4000")
     )
     report_model: str = Field(
         default_factory=lambda: os.getenv("R_REPORT_MODEL", "gpt-4o")
@@ -86,7 +88,8 @@ class LLMConfig(BaseModel):
         if trace_has_turns:
             # Include </think> tag as a stop token when we have turns
             return list(
-                set(self.stop_sequence).union([ConfigConstants.THINK_TAG_CLOSE])
+                set(self.stop_sequence).union(
+                    [ConfigConstants.THINK_TAG_CLOSE])
             )
         return self.stop_sequence
 
@@ -165,53 +168,8 @@ I just got some new information.
     duplicate_url_template: str = ConfigConstants.DUPLICATE_URL_TEMPLATE
 
     # Report system prompt (separate to avoid mixing with main prompt)
-    report_system_prompt: str = """
-You are a specialized document structuring assistant from II AI. Your task is to analyze a main topic and supporting research data, then generate a comprehensive report.
- 
-All the report should be focused on answering the original question, should be well structured, informative, in-depth, and comprehensive, with facts and numbers if available and at least 1000 words.
-You should strive to write the report as long as you can using all relevant and necessary information provided.
-
-Please follow all of the following guidelines in your report:
-- You MUST determine your own concrete and valid opinion based on the given information. Do NOT defer to general and meaningless conclusions.
-- You MUST write the report with markdown syntax and apa format.
-- You MUST prioritize the relevance, reliability, and significance of the sources you use. Choose trusted sources over less reliable ones.
-- You must also prioritize new articles over older articles if the source can be trusted.
-- Use in-text citation references in apa format and make it with markdown hyperlink placed at the end of the sentence or paragraph that references them like this: ([in-text citation](url)).
-- For all references, use the exact url as provided in the visited URLs sections.
-
-You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
-Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report: 
-
-eg: Author, A. A. (Year, Month Date). Title of web page. Website Name. [website](url)
-
-The report should include:
-
-MAIN CONTENT:
-- Comprehensive analysis supported by search data
-- Relevant statistics, metrics, or data points when available
-- Information presented in appropriate formats (tables, lists, paragraphs) based on content type
-- Evaluation of source reliability and information quality
-- Key insights that directly address the original question
-- Any limitations in the search or areas requiring further investigation
-- Citations for all referenced information
-
-VISUAL PRESENTATION:
-- EXACTLY one well-structured table to present key data clearly
-- Use consistent formatting with clear headers and aligned columns
-- Include explanatory notes below the table when necessary
-- Format data appropriately (correct units, significant figures, etc.) in markdown format
-
-FINAL SYNTHESIS:
-- Key findings synthesis
-- Evidence-based comprehensive conclusions
-- Clear connection between findings and the original question
-
-Every section must be directly relevant to the main topic and supported by the provided research data only.
-The structure should be well-organized but natural, avoiding formulaic headings or numbered sections.
-The response format is in well markdown.
-"""
-    def generate_introduction_prompt(self, trace: str, query: str) -> str:
-        return f"""{trace}\n 
+    def generate_introduction_messages(self, trace: str, query: str) -> List[Dict[str, Any]]:
+        introduction_prompt = f"""{trace}\n 
 Using the above latest information, Prepare a detailed report introduction on the topic -- {query}.
 - The introduction should be succinct, well-structured, informative with markdown syntax.
 - As this introduction will be part of a larger report, do NOT include any other sections, which are generally present in a report.
@@ -220,9 +178,19 @@ Using the above latest information, Prepare a detailed report introduction on th
 Assume that the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')} if required.
 - The output must be in english language.
 """
+        return [
+            {
+                "role": "system",
+                "content": "You are a professional writer. Please write a detailed report introduction on the topic."
+            },
+            {
+                "role": "user",
+                "content": introduction_prompt,
+            },
+        ]
 
-    def generate_subtopics_prompt(self, trace: str, query: str) -> str:
-        return f"""
+    def generate_subtopics_messages(self, trace: str, query: str) -> List[Dict[str, Any]]:
+        subtopics_prompt = f"""
             Provided the main topic:
 
             {query}
@@ -238,9 +206,27 @@ Assume that the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y'
 
             "IMPORTANT!":
             - Every subtopic MUST be relevant to the main topic and provided research data ONLY!
-            """ 
-    def generate_subtopic_report_prompt(self, trace: str, content_from_previous_subtopics: str, subtopics: List[str], current_subtopic: str, query: str) -> str:
-        return f"""
+            """
+        return [
+            {
+                "role": "system",
+                "content": "You are a professional writer. Please generate a list of subtopics that can answer the main topic and relevant to the provided research data."
+            },
+            {
+                "role": "user",
+                "content": subtopics_prompt,
+            },
+        ]
+
+    def generate_subtopic_report_messages(
+        self,
+        trace: str,
+        content_from_previous_subtopics: str,
+        subtopics: List[str],
+        current_subtopic: str,
+        query: str
+    ) -> List[Dict[str, Any]]:
+        subtopic_report_prompt = f"""
 Context:
 "{trace}"
 
@@ -299,6 +285,87 @@ Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')} if
 
 Do NOT add a conclusion section.
 """
+        return [
+            {
+                "role": "system",
+                "content": "You are a professional writer. Please write a detailed report on the subtopic."
+            },
+            {
+                "role": "user",
+                "content": subtopic_report_prompt,
+            },
+        ]
+
+    def generate_report_messages(
+        self,
+        trace: str,
+        query: str
+    ) -> List[Dict[str, Any]]:
+        report_system_prompt: str = """
+You are a specialized document structuring assistant from II AI. Your task is to analyze a main topic and supporting research data, then generate a comprehensive report.
+ 
+All the report should be focused on answering the original question, should be well structured, informative, in-depth, and comprehensive, with facts and numbers if available and at least 1000 words.
+You should strive to write the report as long as you can using all relevant and necessary information provided.
+
+Please follow all of the following guidelines in your report:
+- You MUST determine your own concrete and valid opinion based on the given information. Do NOT defer to general and meaningless conclusions.
+- You MUST write the report with markdown syntax and apa format.
+- You MUST prioritize the relevance, reliability, and significance of the sources you use. Choose trusted sources over less reliable ones.
+- You must also prioritize new articles over older articles if the source can be trusted.
+- Use in-text citation references in apa format and make it with markdown hyperlink placed at the end of the sentence or paragraph that references them like this: ([in-text citation](url)).
+- For all references, use the exact url as provided in the visited URLs sections.
+
+You MUST write all used source urls at the end of the report as references, and make sure to not add duplicated sources, but only one reference for each.
+Additionally, you MUST include hyperlinks to the relevant URLs wherever they are referenced in the report: 
+
+eg: Author, A. A. (Year, Month Date). Title of web page. Website Name. [website](url)
+
+The report should include:
+
+MAIN CONTENT:
+- Comprehensive analysis supported by search data
+- Relevant statistics, metrics, or data points when available
+- Information presented in appropriate formats (tables, lists, paragraphs) based on content type
+- Evaluation of source reliability and information quality
+- Key insights that directly address the original question
+- Any limitations in the search or areas requiring further investigation
+- Citations for all referenced information
+
+VISUAL PRESENTATION:
+- EXACTLY one well-structured table to present key data clearly
+- Use consistent formatting with clear headers and aligned columns
+- Include explanatory notes below the table when necessary
+- Format data appropriately (correct units, significant figures, etc.) in markdown format
+
+FINAL SYNTHESIS:
+- Key findings synthesis
+- Evidence-based comprehensive conclusions
+- Clear connection between findings and the original question
+
+Every section must be directly relevant to the main topic and supported by the provided research data only.
+The structure should be well-organized but natural, avoiding formulaic headings or numbered sections.
+The response format is in well markdown.
+"""
+        return [
+            {
+                "role": "system",
+                "content": report_system_prompt,
+            },
+            {
+                "role": "user",
+                "content": f"""Here is the research process and findings:
+
+                ### Research Process
+                {trace}
+
+                ### Original Question
+                {query}
+
+                Based on the research above, please provide a clear and comprehensive report.
+                """,
+            },
+        ]
+
 
 # Create a singleton config instance
 CONFIG = AgentConfig()

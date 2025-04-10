@@ -11,7 +11,7 @@ class ToolHistory:
 
     def add_visited_urls(self, urls: List[str]) -> None:
         """Add URLs to the set of visited URLs.
-        
+
         Args:
             urls: List of URLs to add
         """
@@ -19,7 +19,7 @@ class ToolHistory:
 
     def add_searched_queries(self, queries: List[str]) -> None:
         """Add search queries to the set of searched queries.
-        
+
         Args:
             queries: List of search queries to add
         """
@@ -27,7 +27,7 @@ class ToolHistory:
 
     def get_visited_urls(self) -> List[str]:
         """Get list of all visited URLs.
-        
+
         Returns:
             List of visited URLs
         """
@@ -35,7 +35,7 @@ class ToolHistory:
 
     def get_searched_queries(self) -> List[str]:
         """Get list of all searched queries.
-        
+
         Returns:
             List of searched queries
         """

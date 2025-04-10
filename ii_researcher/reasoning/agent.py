@@ -3,6 +3,8 @@ import logging
 from datetime import datetime
 from typing import Any, Callable, Dict, Optional, Tuple
 
+from ii_researcher.reasoning.clients.report import ReportBuilder
+from ii_researcher.reasoning.tools.tool_history import ToolHistory
 from ii_researcher.reasoning.clients.openai_client import OpenAIClient
 from ii_researcher.reasoning.config import get_config, update_config
 from ii_researcher.reasoning.models.action import Action
@@ -33,8 +35,9 @@ class ReasoningAgent:
             stream_event: Optional callback for streaming events
         """
         self.question = question
+        self.tool_history = ToolHistory()
         self.trace = Trace(query=question, turns=[])
-        self.client = OpenAIClient(stream_event=stream_event)
+        self.client = OpenAIClient()
         self.config = get_config()
         if override_config:
             update_config(override_config)
@@ -91,10 +94,10 @@ class ReasoningAgent:
             result = ""
             if self.stream_event:
                 result = await tool.execute_stream(
-                    self.stream_event, **action.arguments
+                    self.stream_event, self.tool_history, **action.arguments
                 )
             else:
-                result = await tool.execute(**action.arguments)
+                result = await tool.execute(self.tool_history, **action.arguments)
 
             return result, tool.suffix
         except (ValueError, KeyError, RuntimeError) as e:
@@ -158,13 +161,18 @@ class ReasoningAgent:
 
                 # Generate the report
                 try:
+                    report_builder = ReportBuilder(self.stream_event)
                     if is_stream:
                         # Stream the report
-                        final_report = await self.client.generate_report_stream(
-                            self.trace, on_token
+                        final_report = await report_builder.generate_advance_report_stream(
+                            self.tool_history, 
+                            self.trace, 
+                            on_token
                         )
                     else:
-                        final_report = self.client.generate_report(self.trace)
+                        final_report = report_builder.generate_advance_report(
+                            self.tool_history, self.trace
+                        )
 
                     # Create a final turn with the report
                     report_output = ModelOutput(raw=final_report, is_last=True)

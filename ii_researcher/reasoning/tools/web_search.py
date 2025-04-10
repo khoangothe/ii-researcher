@@ -1,8 +1,9 @@
 import logging
-
+from typing import Any, Dict
 from ii_researcher.reasoning.config import ConfigConstants, get_config
 from ii_researcher.reasoning.tools.base import BaseTool
 from ii_researcher.reasoning.tools.registry import register_tool
+from ii_researcher.reasoning.tools.tool_history import ToolHistory
 
 # Import the original tool implementation
 from ii_researcher.tools.read import WebSearchTool as OriginalWebSearchTool
@@ -26,7 +27,7 @@ class WebSearchTool(BaseTool):
     # Set to store already searched queries
     _searched_queries = set()
 
-    async def execute(self, **kwargs) -> str:
+    async def execute(self, tool_history: ToolHistory=None, **kwargs) -> str:
         """Execute the web search."""
         queries = kwargs.get("queries", [])
         config = get_config()
@@ -42,7 +43,8 @@ class WebSearchTool(BaseTool):
             # Check if the query has already been searched
             if query in self._searched_queries:
                 result_str += (
-                    ConfigConstants.DUPLICATE_QUERY_TEMPLATE.format(query=query) + "\n"
+                    ConfigConstants.DUPLICATE_QUERY_TEMPLATE.format(
+                        query=query) + "\n"
                 )
                 continue
 
@@ -67,6 +69,10 @@ class WebSearchTool(BaseTool):
                     result_str += f"URL: {item['url']}\n"
                     result_str += f"Snippet: {item['content']}\n"
                     result_str += "-----------------------------------\n"
+
+                if tool_history is not None:
+                    tool_history.add_searched_queries(
+                        [item['url'] for item in results])
 
             except Exception as e:
                 logging.error(

@@ -1,10 +1,9 @@
 import asyncio
 import logging
-
 from ii_researcher.reasoning.config import ConfigConstants, get_config
 from ii_researcher.reasoning.tools.base import BaseTool
 from ii_researcher.reasoning.tools.registry import register_tool
-
+from ii_researcher.reasoning.tools.tool_history import ToolHistory
 # Import the original tool implementation
 from ii_researcher.tools.web_scraper_compressor import WebScraperCompressor
 
@@ -31,7 +30,7 @@ class WebScraperTool(BaseTool):
     # Set to store already visited URLs
     _visited_urls = set()
 
-    async def execute(self, **kwargs) -> str:
+    async def execute(self, tool_history: ToolHistory=None, **kwargs) -> str:
         """Execute the web scraper."""
         urls = kwargs.get("urls", [])
         question = kwargs.get("question", "")  # Optional question context
@@ -50,7 +49,8 @@ class WebScraperTool(BaseTool):
             # Check if the URL has already been visited
             if url in self._visited_urls:
                 result_str += (
-                    ConfigConstants.DUPLICATE_URL_TEMPLATE.format(url=url) + "\n"
+                    ConfigConstants.DUPLICATE_URL_TEMPLATE.format(
+                        url=url) + "\n"
                 )
                 continue
 
@@ -70,6 +70,9 @@ class WebScraperTool(BaseTool):
                     result_str += f"Error scraping URL: {str(result)}\n"
                 else:
                     result_str += result
+
+        if tool_history is not None:
+            tool_history.add_visited_urls(list(self._visited_urls))
 
         return result_str
 
@@ -93,13 +96,15 @@ class WebScraperTool(BaseTool):
             return return_str
 
         except (ConnectionError, TimeoutError) as e:
-            logging.error("Network error while scraping URL '%s': %s", url, str(e))
+            logging.error(
+                "Network error while scraping URL '%s': %s", url, str(e))
             return f"Network error while scraping URL '{url}': {str(e)}\n"
         except ValueError as e:
             logging.error("Invalid URL '%s': %s", url, str(e))
             return f"Invalid URL '{url}': {str(e)}\n"
         except Exception as e:
-            logging.error("Unexpected error while scraping URL '%s': %s", url, str(e))
+            logging.error(
+                "Unexpected error while scraping URL '%s': %s", url, str(e))
             return f"Unexpected error while scraping URL '{url}': {str(e)}\n"
 
     @classmethod

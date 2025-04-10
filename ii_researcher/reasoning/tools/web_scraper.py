@@ -1,10 +1,9 @@
 import asyncio
 import logging
-
 from ii_researcher.reasoning.config import ConfigConstants, get_config
 from ii_researcher.reasoning.tools.base import BaseTool
 from ii_researcher.reasoning.tools.registry import register_tool
-
+from ii_researcher.reasoning.tools.tool_history import ToolHistory
 # Import the original tool implementation
 from ii_researcher.tools.web_scraper_compressor import WebScraperCompressor
 
@@ -31,7 +30,7 @@ class WebScraperTool(BaseTool):
     # Set to store already visited URLs
     _visited_urls = set()
 
-    async def execute(self, **kwargs) -> str:
+    async def execute(self, tool_history: ToolHistory = None, **kwargs) -> str:
         """Execute the web scraper."""
         urls = kwargs.get("urls", [])
         question = kwargs.get("question", "")  # Optional question context
@@ -70,6 +69,9 @@ class WebScraperTool(BaseTool):
                     result_str += f"Error scraping URL: {str(result)}\n"
                 else:
                     result_str += result
+        
+        if tool_history is not None:
+            tool_history.add_visited_urls(list(self._visited_urls))
 
         return result_str
 

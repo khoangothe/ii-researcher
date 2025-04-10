@@ -1,6 +1,7 @@
 import os
 from typing import Any, Dict, List
 
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
 from ii_researcher.config import SEARCH_PROVIDER
@@ -209,7 +210,95 @@ Every section must be directly relevant to the main topic and supported by the p
 The structure should be well-organized but natural, avoiding formulaic headings or numbered sections.
 The response format is in well markdown.
 """
+    def generate_introduction_prompt(self, trace: str, query: str) -> str:
+        return f"""{trace}\n 
+Using the above latest information, Prepare a detailed report introduction on the topic -- {query}.
+- The introduction should be succinct, well-structured, informative with markdown syntax.
+- As this introduction will be part of a larger report, do NOT include any other sections, which are generally present in a report.
+- The introduction should be preceded by an H1 heading with a suitable topic for the entire report.
+- You must use in-text citation references in apa format and make it with markdown hyperlink placed at the end of the sentence or paragraph that references them like this: ([in-text citation](url)).
+Assume that the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')} if required.
+- The output must be in english language.
+"""
 
+    def generate_subtopics_prompt(self, trace: str, query: str) -> str:
+        return f"""
+            Provided the main topic:
+
+            {query}
+
+            and research data:
+
+            {trace}
+
+            - Construct a list of subtopics which indicate the headers of a report document to be generated on the task. 
+            - There should NOT be any duplicate subtopics.
+            - Limit the number of subtopics from 2 to 7
+            - Finally order the subtopics by their tasks, in a relevant and meaningful order which is presentable in a detailed report
+
+            "IMPORTANT!":
+            - Every subtopic MUST be relevant to the main topic and provided research data ONLY!
+            """ 
+    def generate_subtopic_report_prompt(self, trace: str, content_from_previous_subtopics: str, subtopics: List[str], current_subtopic: str, query: str) -> str:
+        return f"""
+Context:
+"{trace}"
+
+Content from previous subtopics:
+{content_from_previous_subtopics}
+
+Main Topic and Subtopic:
+Using the latest information available, you are constructing a detailed report on the subtopics: {subtopics} to answer the main topic: {query}. You are currently writing the report on the subtopic: {current_subtopic}.
+You must limit the number of subsections to a maximum of 3
+
+Content Focus:
+- The report should focus on answering the question, be well-structured, informative, in-depth, and include facts and numbers if available.
+- Use markdown syntax and follow the APA format.
+- When presenting data, comparisons, or structured information, use markdown tables to enhance readability.
+
+IMPORTANT:Content and Sections Uniqueness:
+- This part of the instructions is crucial to ensure the content is unique and does not overlap with existing reports.
+- Carefully review the existing headers and existing written contents provided below before writing any new subsections.
+- Prevent any content that is already covered in the existing written contents.
+- Do not use any of the existing headers as the new subsection headers.
+- Do not repeat any information already covered in the existing written contents or closely related variations to avoid duplicates.
+- If you have nested subsections, ensure they are unique and not covered in the existing written contents.
+- Ensure that your content is entirely new and does not overlap with any information already covered in the previous subtopic reports.
+
+- All the available topics are:
+
+    {subtopics}
+
+"Structure and Formatting":
+- As this sub-report will be part of a larger report, include only the main body divided into suitable subtopics without any introduction or conclusion section.
+
+- You MUST include markdown hyperlinks to relevant source URLs wherever referenced in the report, for example:
+
+    ### Section Header
+    
+    This is a sample text ([in-text citation](url)).
+
+- Use H2 for the main subtopic header (##) and H3 for subsections (###).
+- Use smaller Markdown headers (e.g., H2 or H3) for content structure, avoiding the largest header (H1) as it will be used for the larger report's heading.
+- Organize your content into distinct sections that build on top of each other and complement but do not overlap with existing subtopic reports.
+- When adding similar or identical subsections to your report, you should clearly indicate the differences between and the new content and the existing written content from previous subtopic reports. For example:
+
+    ### New header (similar to existing header)
+
+    While the previous section discussed [topic A], this section will explore [topic B]."
+
+"Date":
+Assume the current date is {datetime.now(timezone.utc).strftime('%B %d, %Y')} if required.
+
+"IMPORTANT!":
+- You must focus on your designated subtopic only. Each subtopic should build on the previous subtopic but do not repeat the same key information.
+- The focus MUST be on the main topic! You MUST Leave out any information un-related to it!
+- Must NOT have any introduction, conclusion, summary or reference section.
+- You MUST use in-text citation references in APA format and make it with markdown hyperlink placed at the end of the sentence or paragraph that references them like this: ([in-text citation](url)).
+- You MUST mention the difference between the existing content and the new content in the report if you are adding the similar or same subsections wherever necessary.
+
+Do NOT add a conclusion section.
+"""
 
 # Create a singleton config instance
 CONFIG = AgentConfig()

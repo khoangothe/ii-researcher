@@ -13,6 +13,7 @@ from ii_researcher.utils.text_tools import choose_k
 
 
 class AnswerHandler(ActionHandler):
+
     async def handle(self, action_with_think: ActionWithThinkB) -> None:
         """
         Handle an answer action
@@ -28,7 +29,10 @@ class AnswerHandler(ActionHandler):
         print(f"Answer: {action.answer_text[:100]}...")
         await self._send_event(
             Event.DRAFT_ANSWER.value,
-            {"answer": action.answer_text, "is_final": self.state.is_final},
+            {
+                "answer": action.answer_text,
+                "is_final": self.state.is_final
+            },
         )
 
         # Normalize references
@@ -38,14 +42,9 @@ class AnswerHandler(ActionHandler):
                 normalized_refs.append(
                     Reference(
                         exactQuote=ref.exactQuote,
-                        title=(
-                            self.state.all_urls[ref.url]["title"]
-                            if ref.url in self.state.all_urls
-                            else ""
-                        ),
+                        title=(self.state.all_urls[ref.url]["title"] if ref.url in self.state.all_urls else ""),
                         url=self.state.get_actual_url(ref.url),
-                    )
-                )
+                    ))
             action.references = normalized_refs
 
         # evaluate the answer
@@ -56,9 +55,7 @@ class AnswerHandler(ActionHandler):
             visited_urls=self.state.visited_urls,
         )
 
-        if (
-            self.state.current_question.strip() == self.state.question
-        ):  # if the answer is the final answer
+        if (self.state.current_question.strip() == self.state.question):  # if the answer is the final answer
             if evaluation.pass_evaluation:
                 step_diary = ANSWER_GOOD_PROMPT.format(
                     step=self.state.step,
@@ -106,14 +103,12 @@ class AnswerHandler(ActionHandler):
                 diary_context=self.state.diary_context,
             )
 
-            self.state.bad_context.append(
-                {
-                    "question": self.state.current_question,
-                    "answer": action.answer_text,
-                    "evaluation": evaluation.think,
-                    **error_analysis.model_dump(),
-                }
-            )
+            self.state.bad_context.append({
+                "question": self.state.current_question,
+                "answer": action.answer_text,
+                "evaluation": evaluation.think,
+                **error_analysis.model_dump(),
+            })
 
             if error_analysis.next_search:
                 # reranker? maybe
@@ -138,9 +133,7 @@ class AnswerHandler(ActionHandler):
             self.state.step = 0
             return
 
-        if (
-            evaluation.pass_evaluation
-        ):  # if the answer is not the final answer and pass the evaluation
+        if (evaluation.pass_evaluation):  # if the answer is not the final answer and pass the evaluation
             step_diary = ANSWER_SUBQUESTION_PROMPT.format(
                 step=self.state.step,
                 current_question=self.state.current_question,
@@ -153,15 +146,10 @@ class AnswerHandler(ActionHandler):
                 KnowledgeItem(
                     question=self.state.current_question,
                     answer=action.answer_text,
-                    references=(
-                        [a.model_dump() for a in action.references]
-                        if action.references
-                        else []
-                    ),
+                    references=([a.model_dump() for a in action.references] if action.references else []),
                     type=KnowledgeType.QA,
                     updated=self._get_current_date(),
-                )
-            )
+                ))
 
         else:  # if the answer is not the final answer and not pass the evaluation
             pass

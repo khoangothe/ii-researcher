@@ -24,11 +24,7 @@ async def evaluate_answer(
     # Only add attribution if we have valid references
     urls = []
     if action.references:
-        urls = [
-            ref.url
-            for ref in action.references
-            if ref.url.startswith("http") and ref.url not in visited_urls
-        ]
+        urls = [ref.url for ref in action.references if ref.url.startswith("http") and ref.url not in visited_urls]
 
     unique_new_urls = list(set(urls))
 
@@ -44,16 +40,15 @@ async def evaluate_answer(
     for evaluation_type in evaluation_types:
         if evaluation_type == EvaluationType.Attribution:
             # Safely handle references and ensure we have content
-            all_knowledge = await fetch_source_content(
-                unique_new_urls, question=question
-            )
+            all_knowledge = await fetch_source_content(unique_new_urls, question=question)
 
             visited_urls.extend(unique_new_urls)
 
             if not all_knowledge.strip():
                 return EvaluationResponse(
                     pass_evaluation=False,
-                    think=f"The answer does provide URL references {unique_new_urls}, but the content could not be fetched or is empty. Need to found some other references and URLs",
+                    think=
+                    f"The answer does provide URL references {unique_new_urls}, but the content could not be fetched or is empty. Need to found some other references and URLs",
                     type=EvaluationType.Attribution,
                 )
             result = await b.EvaluateAttribution(
@@ -178,9 +173,7 @@ async def fetch_source_content(urls: List[str], question: str) -> str:
 
     async def scrape(url):
         try:
-            response = await asyncio.wait_for(
-                scrape_tool.scrape(url), timeout=SCRAPE_URL_TIMEOUT
-            )
+            response = await asyncio.wait_for(scrape_tool.scrape(url), timeout=SCRAPE_URL_TIMEOUT)
             return response["content"]
         except asyncio.TimeoutError:
             return "Timeout for URL: " + url

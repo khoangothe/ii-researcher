@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict
 from ii_researcher.reasoning.tools.tool_history import ToolHistory
 
+
 class BaseTool(ABC):
     """Base class for all tools."""
 
@@ -16,9 +17,10 @@ class BaseTool(ABC):
     async def execute(self, tool_history: ToolHistory = None, **kwargs) -> str:
         """Execute the tool with the given arguments."""
 
-    async def execute_stream(
-        self, stream_event: Callable[[str, Dict[str, Any]], None], tool_history: ToolHistory = None, **kwargs
-    ) -> str:
+    async def execute_stream(self,
+                             stream_event: Callable[[str, Dict[str, Any]], None],
+                             tool_history: ToolHistory = None,
+                             **kwargs) -> str:
         """Execute the tool with the given arguments."""
         await stream_event("tool", {"name": self.name, "arguments": kwargs})
         await asyncio.sleep(0)

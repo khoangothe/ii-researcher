@@ -25,12 +25,8 @@ class Reference(BaseModel):
         ...,
         description="Exact relevant quote from the document, must be a soundbite, short and to the point, no fluff",
     )
-    url: str = Field(
-        description="source URL; must be directly from the context", default=""
-    )
-    title: Optional[str] = Field(
-        None, description="Title of the document, if available"
-    )
+    url: str = Field(description="source URL; must be directly from the context", default="")
+    title: Optional[str] = Field(None, description="Title of the document, if available")
 
 
 class FreshnessAnalysis(BaseModel):

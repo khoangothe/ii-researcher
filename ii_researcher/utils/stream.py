@@ -7,6 +7,7 @@ from ii_researcher.pipeline.schemas import EventMessage
 
 
 class StreamManager:
+
     def __init__(self):
         self.queue = asyncio.Queue()
 
@@ -18,7 +19,9 @@ class StreamManager:
     def create_error_event(self, error_message: str) -> str:
         error_event = {
             "type": "error",
-            "data": {"message": error_message},
+            "data": {
+                "message": error_message
+            },
             "timestamp": time.time(),
         }
         return f"data: {json.dumps(error_event)}\n\n"
@@ -26,7 +29,9 @@ class StreamManager:
     def create_complete_event(self, final_report: Any) -> str:
         complete_event = {
             "type": "complete",
-            "data": {"final_report": final_report},
+            "data": {
+                "final_report": final_report
+            },
             "timestamp": time.time(),
         }
         return f"data: {json.dumps(complete_event)}\n\n"
@@ -34,7 +39,9 @@ class StreamManager:
     def create_close_event(self) -> str:
         close_event = {
             "type": "stream_closed",
-            "data": {"reason": "Connection closed"},
+            "data": {
+                "reason": "Connection closed"
+            },
             "timestamp": time.time(),
         }
         return f"data: {json.dumps(close_event)}\n\n"

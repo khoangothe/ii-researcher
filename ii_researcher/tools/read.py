@@ -53,13 +53,11 @@ class WebSearchTool:
                     for result in results:
                         if results_processed >= max_results:
                             break
-                        search_response.append(
-                            {
-                                "title": result["title"],
-                                "url": result["link"],
-                                "content": result["snippet"],
-                            }
-                        )
+                        search_response.append({
+                            "title": result["title"],
+                            "url": result["link"],
+                            "content": result["snippet"],
+                        })
                         results_processed += 1
         except Exception as e:
             print(f"Error: {e}. Failed fetching sources. Resulting in empty response.")

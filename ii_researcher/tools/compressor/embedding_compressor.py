@@ -10,6 +10,7 @@ from .base import Compressor
 
 
 class EmbeddingCompressor(Compressor):
+
     def __init__(
         self,
         similarity_threshold: float,
@@ -42,7 +43,6 @@ class EmbeddingCompressor(Compressor):
 
         max_similarities = np.max(similarities, axis=1)
         relevant_indices = np.where(max_similarities >= self.similarity_threshold)[0]
-        sorted_indices = relevant_indices[
-            np.argsort(-max_similarities[relevant_indices])
-        ]  # sort by decreasing of relevance
+        sorted_indices = relevant_indices[np.argsort(
+            -max_similarities[relevant_indices])]  # sort by decreasing of relevance
         return sorted_indices.tolist()

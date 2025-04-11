@@ -10,6 +10,7 @@ from ii_researcher.pipeline.state import ActionState
 
 
 class ActionHandler(ABC):
+
     def __init__(self, state: ActionState):
         """
         Initialize the action handler with the given state.

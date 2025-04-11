@@ -3,8 +3,8 @@ import logging
 import re
 from argparse import ArgumentParser
 from dotenv import load_dotenv
-load_dotenv()
 
+load_dotenv()
 
 from ii_researcher.pipeline.agent import DeepSearchAgent
 from ii_researcher.reasoning.agent import ReasoningAgent
@@ -42,9 +42,7 @@ async def main(
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="AI Research Agent")
-    parser.add_argument(
-        "--question", type=str, required=True, help="The question to research"
-    )
+    parser.add_argument("--question", type=str, required=True, help="The question to research")
     parser.add_argument(
         "--save-report",
         action="store_true",
@@ -68,5 +66,4 @@ if __name__ == "__main__":
             save_report=args.save_report,
             use_reasoning=args.use_reasoning,
             is_stream=args.stream,
-        )
-    )
+        ))

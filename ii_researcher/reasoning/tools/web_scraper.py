@@ -13,11 +13,9 @@ class WebScraperTool(BaseTool):
     """Tool for scraping web pages."""
 
     name = "page_visit"
-    description = (
-        "Retrieves the content of a webpage by accessing the specified URL. "
-        "This tool simulates a visit to the website and returns the full HTML "
-        "source code of the page as a string"
-    )
+    description = ("Retrieves the content of a webpage by accessing the specified URL. "
+                   "This tool simulates a visit to the website and returns the full HTML "
+                   "source code of the page as a string")
     argument_schema = {
         "urls": {
             "type": "list",
@@ -30,7 +28,7 @@ class WebScraperTool(BaseTool):
     # Set to store already visited URLs
     _visited_urls = set()
 
-    async def execute(self, tool_history: ToolHistory=None, **kwargs) -> str:
+    async def execute(self, tool_history: ToolHistory = None, **kwargs) -> str:
         """Execute the web scraper."""
         urls = kwargs.get("urls", [])
         question = kwargs.get("question", "")  # Optional question context
@@ -40,7 +38,7 @@ class WebScraperTool(BaseTool):
             return "No URLs provided."
 
         # Limit the number of URLs
-        urls = urls[: config.tool.max_urls_to_visit]
+        urls = urls[:config.tool.max_urls_to_visit]
 
         result_str = ""
         tasks = []
@@ -48,10 +46,7 @@ class WebScraperTool(BaseTool):
         for url in urls:
             # Check if the URL has already been visited
             if url in self._visited_urls:
-                result_str += (
-                    ConfigConstants.DUPLICATE_URL_TEMPLATE.format(
-                        url=url) + "\n"
-                )
+                result_str += (ConfigConstants.DUPLICATE_URL_TEMPLATE.format(url=url) + "\n")
                 continue
 
             # Add to visited URLs
@@ -96,15 +91,13 @@ class WebScraperTool(BaseTool):
             return return_str
 
         except (ConnectionError, TimeoutError) as e:
-            logging.error(
-                "Network error while scraping URL '%s': %s", url, str(e))
+            logging.error("Network error while scraping URL '%s': %s", url, str(e))
             return f"Network error while scraping URL '{url}': {str(e)}\n"
         except ValueError as e:
             logging.error("Invalid URL '%s': %s", url, str(e))
             return f"Invalid URL '{url}': {str(e)}\n"
         except Exception as e:
-            logging.error(
-                "Unexpected error while scraping URL '%s': %s", url, str(e))
+            logging.error("Unexpected error while scraping URL '%s': %s", url, str(e))
             return f"Unexpected error while scraping URL '{url}': {str(e)}\n"
 
     @classmethod

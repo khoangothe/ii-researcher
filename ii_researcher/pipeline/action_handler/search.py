@@ -14,15 +14,14 @@ from ii_researcher.utils.url_tools import normalize_url
 
 
 class SearchHandler(ActionHandler):
+
     async def handle(self, action_with_think: ActionWithThinkB) -> None:
         """Handle a search action"""
         assert isinstance(action_with_think.action, Search)
         action = action_with_think.action
 
         # Get unique search queries after deduplication
-        unique_queries = await self._get_unique_search_queries(
-            action.search_requests, action_with_think.thinking
-        )
+        unique_queries = await self._get_unique_search_queries(action.search_requests, action_with_think.thinking)
 
         # If no unique queries after deduplication, log and disable search
         if not unique_queries:
@@ -43,41 +42,28 @@ class SearchHandler(ActionHandler):
     async def _get_unique_search_queries(self, search_requests, thinking):
         """Get unique search queries after deduplication and rewriting"""
         # Deduplicate search requests
-        dedup_result = await b.DedupQueries(
-            new_queries=search_requests, existing_queries=[]
-        )
-        search_requests = choose_k(
-            dedup_result.unique_queries, self.state.config.max_queries_per_step
-        )
+        dedup_result = await b.DedupQueries(new_queries=search_requests, existing_queries=[])
+        search_requests = choose_k(dedup_result.unique_queries, self.state.config.max_queries_per_step)
 
         if not search_requests:
             return []
 
         # Rewrite queries
         current_date = self._get_current_date()
-        tasks = [
-            b.RewriteQuery(
-                query=query,
-                think=thinking,
-                current_date=current_date,
-            )
-            for query in search_requests
-        ]
+        tasks = [b.RewriteQuery(
+            query=query,
+            think=thinking,
+            current_date=current_date,
+        ) for query in search_requests]
 
         rewrite_result = await asyncio.gather(*tasks)
-        keywords_queries = [
-            query for result in rewrite_result for query in result.queries
-        ]
+        keywords_queries = [query for result in rewrite_result for query in result.queries]
 
         # Deduplicate against existing keywords
-        dedup_result = await b.DedupQueries(
-            new_queries=keywords_queries, existing_queries=self.state.all_keywords
-        )
+        dedup_result = await b.DedupQueries(new_queries=keywords_queries, existing_queries=self.state.all_keywords)
 
         # Return top K unique queries
-        return choose_k(
-            dedup_result.unique_queries, self.state.config.max_queries_per_step
-        )
+        return choose_k(dedup_result.unique_queries, self.state.config.max_queries_per_step)
 
     async def _process_search_queries(self, queries):
         """Process search queries and return results"""
@@ -122,9 +108,7 @@ class SearchHandler(ActionHandler):
             return min_results
 
         except Exception as error:
-            logging.warning(
-                "%s search failed for query %s: %s", SEARCH_PROVIDER, query, error
-            )
+            logging.warning("%s search failed for query %s: %s", SEARCH_PROVIDER, query, error)
             return None
         finally:
             await self.sleep()
@@ -175,13 +159,8 @@ class SearchHandler(ActionHandler):
 
         description_text = (
             "\n\n ".join(
-                [
-                    f"{self.state.get_display_url(r.get('url', ''))}: {r.get('description', '')}"
-                    for r in results
-                ]
-            )
-            + "\n\nBut this is just a quick look, you need to visit the websites to get more details if needed."
-        )
+                [f"{self.state.get_display_url(r.get('url', ''))}: {r.get('description', '')}" for r in results]) +
+            "\n\nBut this is just a quick look, you need to visit the websites to get more details if needed.")
 
         await self._add_to_knowledge(
             KnowledgeItem(
@@ -189,8 +168,7 @@ class SearchHandler(ActionHandler):
                 answer=description_text,
                 type=KnowledgeType.SearchInfo,
                 updated=self._get_current_date(),
-            )
-        )
+            ))
 
     def _log_duplicate_search(self, queries):
         """Log duplicate search or failed search to diary"""

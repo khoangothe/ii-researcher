@@ -18,6 +18,7 @@ from .scraper import Scraper
 
 
 class WebScraperCompressor:
+
     def __init__(self, query, cfg=None, context_compressor=None):
         """
         Initialize the WebScraperCompressor
@@ -30,9 +31,7 @@ class WebScraperCompressor:
         if context_compressor:
             self.context_compressor = context_compressor
         else:
-            if COMPRESS_EMBEDDING_MODEL is not None and len(
-                COMPRESS_EMBEDDING_MODEL.strip()
-            ) > 0:
+            if COMPRESS_EMBEDDING_MODEL is not None and len(COMPRESS_EMBEDDING_MODEL.strip()) > 0:
                 # Initialize the embedding compressor with the specified similarity threshold
                 # and embedding model
                 embedding_compressor = EmbeddingCompressor(
@@ -54,9 +53,7 @@ class WebScraperCompressor:
             )
 
             if len(compressors) == 0:
-                raise ValueError(
-                    "No compressors available. Please check your configuration."
-                )
+                raise ValueError("No compressors available. Please check your configuration.")
 
     def _scrape_urls(self, urls):
         """
@@ -67,9 +64,8 @@ class WebScraperCompressor:
         """
         scraped_data = []
         user_agent = (
-            self.cfg.user_agent
-            if self.cfg
-            else "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+            self.cfg.user_agent if self.cfg else
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
         )
 
         try:
@@ -86,9 +82,7 @@ class WebScraperCompressor:
         Handle github links by converting them to raw links
         """
         if "github.com" in url and "/blob/" in url:
-            url = url.replace("github.com", "raw.githubusercontent.com").replace(
-                "/blob/", "/"
-            )
+            url = url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/")
             return url
         return url
 
@@ -107,7 +101,10 @@ class WebScraperCompressor:
         except Exception as e:
             print(f"{Fore.RED}Error in scrape_llm: {e}{Style.RESET_ALL}")
             return {
-                "raw_content": "",
-                "url": url,
-                "content": f"Unable to access the content at {url}. Please consider exploring alternative sources to find the information you need.",
+                "raw_content":
+                    "",
+                "url":
+                    url,
+                "content":
+                    f"Unable to access the content at {url}. Please consider exploring alternative sources to find the information you need.",
             }

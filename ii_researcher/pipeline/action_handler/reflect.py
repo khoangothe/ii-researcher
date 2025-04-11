@@ -7,6 +7,7 @@ from ii_researcher.utils.text_tools import choose_k
 
 
 class ReflectHandler(ActionHandler):
+
     async def handle(self, action_with_think: ActionWithThinkB) -> None:
         """
         Handle a reflect action
@@ -18,9 +19,7 @@ class ReflectHandler(ActionHandler):
             new_queries=action.questions_to_answer,
             existing_queries=self.state.all_questions,
         )
-        questions = choose_k(
-            dedup_result.unique_queries, self.state.config.max_reflect_per_step
-        )
+        questions = choose_k(dedup_result.unique_queries, self.state.config.max_reflect_per_step)
 
         if len(questions) > 0:
             step_diary = REFLECT_SUCCESS_PROMPT.format(

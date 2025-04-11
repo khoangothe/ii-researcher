@@ -19,9 +19,7 @@ class KnowledgeSource:
 
     def get_knowledge_by_types(self, types: List[KnowledgeType]) -> List[KnowledgeItem]:
         """Get the knowledge base by types"""
-        return [
-            knowledge for knowledge in self.all_knowledge if knowledge.type in types
-        ]
+        return [knowledge for knowledge in self.all_knowledge if knowledge.type in types]
 
 
 @dataclass
@@ -118,9 +116,7 @@ class AgentState:
 
     def get_display_url(self, url: str) -> str:
         """Get a display version of a URL, using the [Title](<url-n>) format"""
-        return (
-            f"[{self.all_urls[url].get('title', 'No Title')}]({self.get_url_id(url)})"
-        )
+        return (f"[{self.all_urls[url].get('title', 'No Title')}]({self.get_url_id(url)})")
 
     def get_url_mapping(self) -> Dict[str, str]:
         """Return mapping of URL IDs to actual URLs"""

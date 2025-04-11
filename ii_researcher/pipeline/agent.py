@@ -48,9 +48,9 @@ class DeepSearchAgent:
     """Agent for deep search"""
 
     def __init__(
-        self,
-        config: AgentConfig = AgentConfig(),
-        stream_event: Optional[Callable[[str, Dict[str, Any]], None]] = None,
+            self,
+            config: AgentConfig = AgentConfig(),
+            stream_event: Optional[Callable[[str, Dict[str, Any]], None]] = None,
     ):
         """
         Initialize the agent
@@ -66,9 +66,7 @@ class DeepSearchAgent:
         self.state = AgentState()
 
         # Set up action state with config and stream event
-        self.action_state = ActionState(
-            agent_state=self.state, config=self.config, stream_event=self.stream_event
-        )
+        self.action_state = ActionState(agent_state=self.state, config=self.config, stream_event=self.stream_event)
 
         # Initialize action handlers
         self.handlers = {
@@ -97,9 +95,7 @@ class DeepSearchAgent:
         current_date = self._get_current_date()
 
         # Get unvisited URLs and convert them to display format
-        unvisited_urls = get_unvisited_urls(
-            self.state.all_urls, self.state.visited_urls
-        )
+        unvisited_urls = get_unvisited_urls(self.state.all_urls, self.state.visited_urls)
         display_unvisited_urls = []
         for url_data in unvisited_urls:
             url_copy = url_data.copy()
@@ -109,14 +105,12 @@ class DeepSearchAgent:
             display_unvisited_urls.append(url_copy)
 
         action_with_think = await b.GenerateAction(
-            knowledges=self.state.knowledge_source.get_knowledge_by_types(
-                [
-                    KnowledgeType.QA,
-                    KnowledgeType.URL,
-                    KnowledgeType.Strategy,
-                    KnowledgeType.SearchInfo,
-                ]
-            ),
+            knowledges=self.state.knowledge_source.get_knowledge_by_types([
+                KnowledgeType.QA,
+                KnowledgeType.URL,
+                KnowledgeType.Strategy,
+                KnowledgeType.SearchInfo,
+            ]),
             question=question,
             current_date=current_date,
             allow_reflect=self.state.allow_reflect,
@@ -155,14 +149,12 @@ class DeepSearchAgent:
 
         stream = b.stream.GenerateReport(
             original_question=original_question,
-            knowledge=self.state.knowledge_source.get_knowledge_by_types(
-                [
-                    KnowledgeType.QA,
-                    KnowledgeType.URL,
-                    KnowledgeType.Strategy,
-                    KnowledgeType.SearchInfo,
-                ]
-            ),
+            knowledge=self.state.knowledge_source.get_knowledge_by_types([
+                KnowledgeType.QA,
+                KnowledgeType.URL,
+                KnowledgeType.Strategy,
+                KnowledgeType.SearchInfo,
+            ]),
             visited_urls=display_visited_urls,
             diary_context=self.state.diary_context,
             current_date=current_date,
@@ -190,44 +182,34 @@ class DeepSearchAgent:
         # Reset state
         self._reset_state()
         self.state.question = question.strip()
-        self.state.gaps = [
-            question
-        ]  # All questions to be answered including the original question
+        self.state.gaps = [question]  # All questions to be answered including the original question
         self.state.all_questions = [question]
-        await self._send_event(
-            Event.START.value, {"question": question, "max_steps": max_steps}
-        )
-        while (
-            self.state.total_step < max_steps
-            and self.state.bad_attempts < self.config.max_bad_attempts
-        ):
+        await self._send_event(Event.START.value, {"question": question, "max_steps": max_steps})
+        while (self.state.total_step < max_steps and self.state.bad_attempts < self.config.max_bad_attempts):
             self.state.step += 1
             self.state.total_step += 1
 
             print(f"\n--- Step {self.state.step} ---")
             await self._send_event(
                 Event.STEP.value,
-                {"step": self.state.step, "total_step": self.state.total_step},
+                {
+                    "step": self.state.step,
+                    "total_step": self.state.total_step
+                },
             )
 
             # Get the current question from the gaps
-            self.state.allow_reflect = self.state.allow_reflect and (
-                len(self.state.gaps) <= 1
-            )
+            self.state.allow_reflect = self.state.allow_reflect and (len(self.state.gaps) <= 1)
 
-            self.state.current_question = (
-                self.state.gaps.pop(0) if self.state.gaps else question
-            )
+            self.state.current_question = (self.state.gaps.pop(0) if self.state.gaps else question)
 
             if self.state.current_question not in self.state.evaluation_metrics:
-                self.state.evaluation_metrics[
-                    self.state.current_question
-                ] = await evaluate_question(self.state.current_question)
+                self.state.evaluation_metrics[self.state.current_question] = await evaluate_question(
+                    self.state.current_question)
 
-            self.state.allow_search = self.state.allow_search and (
-                len(get_unvisited_urls(self.state.all_urls, self.state.visited_urls))
-                < 50
-            )  # disable search when too many urls already
+            self.state.allow_search = self.state.allow_search and (len(
+                get_unvisited_urls(self.state.all_urls, self.state.visited_urls)) < 50
+                                                                  )  # disable search when too many urls already
 
             # Generate the next action
             action_with_think = await self.generate_action(self.state.current_question)
@@ -269,9 +251,7 @@ class DeepSearchAgent:
 
             # Sleep between steps
             print(f"Step {self.state.step} completed.")
-            await self._send_event(
-                Event.STEP_COMPLETED.value, {"step": self.state.step}
-            )
+            await self._send_event(Event.STEP_COMPLETED.value, {"step": self.state.step})
             await self.sleep()
 
         if not self.state.is_final:

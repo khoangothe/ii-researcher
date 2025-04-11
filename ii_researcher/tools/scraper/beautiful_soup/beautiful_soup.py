@@ -4,6 +4,7 @@ from ..utils import clean_soup, extract_title, get_text_from_soup
 
 
 class BeautifulSoupScraper:
+
     def __init__(self, link, session=None):
         self.link = link
         self.session = session
@@ -21,9 +22,7 @@ class BeautifulSoupScraper:
         """
         try:
             response = self.session.get(self.link, timeout=4)
-            soup = BeautifulSoup(
-                response.content, "lxml", from_encoding=response.encoding
-            )
+            soup = BeautifulSoup(response.content, "lxml", from_encoding=response.encoding)
 
             soup = clean_soup(soup)
 
